@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#04070d"/>
+<title>NET SENCE — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ============ Reset & Tokens ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#04070d; --panel:#0a1426;
+  --line:rgba(120,170,255,.14); --line2:rgba(120,170,255,.30);
+  --blue:#2f9dff; --cyan:#6fe3ff;
+  --text:#eaf2ff; --muted:#8fa7cc;
+  --grad:linear-gradient(135deg,#6fe3ff,#2f9dff 45%,#1b49c8);
+}
+html,body{height:100%}
+body{font-family:'Inter',system-ui,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+body.locked{overflow:hidden}
+::selection{background:rgba(47,157,255,.35)}
+
+/* ============ Shared keyframes ============ */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinRev{to{transform:rotate(-360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes rise{to{transform:translateY(0)}}
+
+/* ================================================================
+   PAGE 1 — WELCOME
+================================================================ */
+#welcome{
+  position:fixed;inset:0;z-index:60;overflow:hidden;
+  display:grid;place-items:center;
+  background:radial-gradient(1000px 620px at 50% 42%,#0a1428,#04070d 72%);
+  transition:opacity .55s ease,transform .55s ease,visibility 0s .55s;
+}
+#welcome.hide{opacity:0;transform:scale(1.06);visibility:hidden}
+#net{position:absolute;inset:0;width:100%;height:100%}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%,transparent 42%,rgba(2,4,10,.78) 100%)}
+
+/* radio waves at the bottom */
+.waves{position:absolute;left:0;right:0;bottom:0;width:100%;height:150px;pointer-events:none;opacity:.6}
+.wv{fill:none;stroke-width:1.5;stroke-dasharray:3 7}
+.w1{stroke:rgba(111,227,255,.5);animation:flow 2.6s linear infinite}
+.w2{stroke:rgba(47,157,255,.4);animation:flow 3.6s linear infinite reverse}
+.w3{stroke:rgba(47,157,255,.22);animation:flow 5s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-100}}
+
+.w-inner{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px}
+
+/* ---- animated N logo composition ---- */
+.stage{position:relative;width:300px;height:300px;margin-bottom:26px;transition:transform .3s ease-out}
+.halo{position:absolute;left:50%;top:50%;border-radius:50%;border:1px dashed rgba(110,180,255,.32)}
+.halo.h1{width:190px;height:190px;margin:-95px 0 0 -95px;animation:spin 30s linear infinite}
+.halo.h2{width:242px;height:242px;margin:-121px 0 0 -121px;border-style:solid;border-color:rgba(110,180,255,.15);animation:spinRev 44s linear infinite}
+
+.ripple{position:absolute;left:50%;top:50%;width:210px;height:210px;margin:-105px 0 0 -105px;
+  border-radius:50%;border:1.5px solid rgba(111,227,255,.5);opacity:0;
+  animation:ripple 3.6s cubic-bezier(.2,.5,.4,1) infinite}
+.rp2{animation-delay:1.2s}.rp3{animation-delay:2.4s}
+@keyframes ripple{0%{transform:scale(.5);opacity:.85}100%{transform:scale(1.45);opacity:0}}
+
+.orbit{position:absolute;left:50%;top:50%;width:212px;height:212px;margin:-106px 0 0 -106px;
+  border-radius:50%;animation:spin 13s linear infinite}
+.orbit i{position:absolute;top:-4px;left:calc(50% - 4px);width:8px;height:8px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.orbit i.b{top:auto;bottom:-4px;background:var(--blue);box-shadow:0 0 14px var(--blue)}
+.orbit.o2{width:256px;height:256px;margin:-128px 0 0 -128px;animation:spinRev 22s linear infinite}
+.orbit.o2 i{width:6px;height:6px;background:#9fd0ff;box-shadow:0 0 10px #9fd0ff}
+
+.n{position:relative;z-index:2;font-family:'Orbitron',sans-serif;font-weight:900;font-size:148px;line-height:1;
+  background:linear-gradient(160deg,#a8ecff 5%,#3aa0ff 42%,#1b49c8 92%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 14px 34px rgba(40,130,255,.5)) drop-shadow(0 0 70px rgba(40,130,255,.35));
+  transform:perspective(700px) rotateX(8deg);
+  animation:floaty 6s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:perspective(700px) rotateX(8deg) translateY(0)}
+  50%{transform:perspective(700px) rotateX(8deg) translateY(-14px)}}
+
+/* ---- brand name + texts ---- */
+.wl{display:flex;gap:.32em;font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:clamp(36px,7vw,64px);letter-spacing:.08em;line-height:1.15}
+.mask{overflow:hidden;display:inline-block;padding-bottom:.06em}
+.mask i{display:inline-block;font-style:normal;transform:translateY(120%);
+  animation:rise .95s .3s cubic-bezier(.19,.8,.22,1) forwards}
+.mask:nth-child(2) i{animation-delay:.48s;background:var(--grad);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.tag{margin-top:8px;font-size:13px;font-weight:700;letter-spacing:.42em;text-transform:uppercase;
+  color:var(--cyan);opacity:0;animation:fadeUp .8s .85s forwards}
+.sub{margin-top:14px;color:var(--muted);font-size:15px;opacity:0;animation:fadeUp .8s 1.05s forwards}
+
+.cta{position:relative;display:inline-flex;align-items:center;gap:10px;margin-top:34px;
+  padding:15px 40px;border:0;border-radius:999px;font:inherit;font-size:15px;font-weight:700;
+  letter-spacing:.03em;color:#fff;cursor:pointer;overflow:hidden;
+  background:linear-gradient(135deg,#3aa0ff,#1b49c8);
+  box-shadow:0 14px 40px rgba(37,110,255,.45),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .25s,box-shadow .25s,filter .25s;
+  opacity:0;animation:fadeUp .8s 1.25s forwards}
+.cta:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.08);
+  box-shadow:0 20px 55px rgba(37,110,255,.6),inset 0 1px 0 rgba(255,255,255,.25)}
+.cta svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cta::after{content:'';position:absolute;top:0;left:-70%;width:45%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:skewX(-22deg);animation:shine 3.4s ease-in-out infinite}
+@keyframes shine{0%,55%{left:-70%}100%{left:135%}}
+
+.hint{margin-top:26px;font-size:11.5px;color:rgba(143,167,204,.65);letter-spacing:.06em;
+  opacity:0;animation:fadeUp .8s 1.6s forwards}
+.hint b{color:var(--muted)}
+
+/* ================================================================
+   PAGE 2 — MAIN SITE (Pandora-FMS style)
+================================================================ */
+#app{display:none;min-height:100vh;position:relative}
+#app.show{display:block;animation:appIn .7s ease both}
+@keyframes appIn{from{opacity:0}to{opacity:1}}
+
+.app-bg{position:fixed;inset:0;z-index:-1;
+  background:
+   radial-gradient(900px 520px at 82% -10%,rgba(37,110,255,.16),transparent 60%),
+   radial-gradient(700px 420px at -10% 30%,rgba(111,227,255,.07),transparent 60%),
+   var(--bg)}
+.app-bg::after{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(120,170,255,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(120,170,255,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%);
+  mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%)}
+
+/* ---- top navbar ---- */
+#topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:16px;height:72px;
+  padding:0 26px;background:rgba(5,10,20,.78);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line)}
+#app.show #topbar{animation:down .6s .1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes down{from{transform:translateY(-100%)}to{transform:none}}
+
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text);cursor:pointer}
+.brand-mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;
+  font-family:'Orbitron';font-weight:900;font-size:21px;color:#fff;background:var(--grad);
+  box-shadow:0 6px 18px rgba(37,110,255,.45)}
+.brand-name{font-family:'Orbitron';letter-spacing:.12em;font-size:14.5px;white-space:nowrap}
+.brand-name b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+#menu{display:flex;align-items:center;gap:2px}
+
+/* nav item + hover card */
+.nav-item{position:relative;display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:10px;
+  color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;user-select:none;outline:none;
+  transition:color .2s,background .2s}
+.nav-item>svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-item:hover,.nav-item:focus-visible{color:#fff;background:rgba(70,150,255,.1)}
+
+.drop{position:absolute;top:calc(100% + 12px);left:50%;
+  transform:translate(-50%,10px) scale(.96);opacity:0;pointer-events:none;
+  transition:.22s cubic-bezier(.3,.7,.3,1);
+  display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:13px;white-space:nowrap;z-index:30;
+  background:linear-gradient(180deg,#101f3c,#0a1628);
+  border:1px solid var(--line2);box-shadow:0 18px 44px rgba(2,8,20,.65)}
+.nav-item:hover .drop,.nav-item:focus-visible .drop{opacity:1;transform:translate(-50%,0) scale(1)}
+.drop::before{content:'';position:absolute;top:-5.5px;left:50%;width:10px;height:10px;
+  transform:translateX(-50%) rotate(45deg);background:#101f3c;
+  border-left:1px solid var(--line2);border-top:1px solid var(--line2)}
+.drop-ic{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;flex:none;
+  background:rgba(70,150,255,.14);color:var(--cyan)}
+.drop-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.drop-name{font-weight:700;font-size:14px}
+.drop-soon{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;color:#ffd479;
+  background:rgba(255,190,70,.1);border:1px solid rgba(255,190,70,.35);
+  padding:4px 10px;border-radius:99px}
+.drop-soon i{width:6px;height:6px;border-radius:50%;background:#ffc24d;
+  box-shadow:0 0 8px #ffc24d;animation:blink 1.6s infinite}
+
+/* keep the last two cards inside the viewport */
+@media(min-width:981px){
+  #menu .nav-item:nth-last-child(-n+2) .drop{left:auto;right:0;transform:translate(0,10px) scale(.96)}
+  #menu .nav-item:nth-last-child(-n+2):hover .drop,
+  #menu .nav-item:nth-last-child(-n+2):focus-visible .drop{transform:translate(0,0) scale(1)}
+  #menu .nav-item:nth-last-child(-n+2) .drop::before{left:auto;right:18px;transform:rotate(45deg)}
+}
+
+/* actions */
+.top-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:10px 18px;cursor:pointer;
+  transition:.25s;border:1px solid transparent}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line2)}
+.btn.ghost:hover{background:rgba(70,150,255,.1);border-color:rgba(111,227,255,.5)}
+.btn.solid{background:linear-gradient(135deg,#2f9dff,#1b49c8);color:#fff;
+  box-shadow:0 8px 22px rgba(37,110,255,.35)}
+.btn.solid:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn.lg{padding:14px 26px;font-size:15px;border-radius:12px}
+
+/* burger */
+#burger{display:none;flex-direction:column;gap:5px;background:none;cursor:pointer;
+  border:1px solid var(--line2);border-radius:10px;padding:11px}
+#burger span{width:20px;height:2px;background:var(--text);border-radius:2px;transition:.25s}
+#burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#burger.open span:nth-child(2){opacity:0}
+#burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ---- hero ---- */
+.hero{max-width:1180px;margin:0 auto;padding:84px 28px 70px;display:grid;
+  grid-template-columns:1.04fr .96fr;gap:56px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);
+  border:1px solid rgba(111,227,255,.35);background:rgba(111,227,255,.07);
+  padding:7px 14px;border-radius:99px;margin-bottom:22px}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 10px var(--cyan);animation:blink 1.8s infinite}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-copy h1{font-size:clamp(32px,4.4vw,52px);line-height:1.14;font-weight:800;
+  letter-spacing:-.01em;margin-bottom:20px}
+.hero-copy p{color:var(--muted);font-size:16px;line-height:1.75;max-width:520px;margin-bottom:30px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:38px;margin-top:38px;flex-wrap:wrap}
+.hero-stats b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-stats span{font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+
+/* ---- dashboard mockup ---- */
+.hero-visual{position:relative}
+.hero-visual::before{content:'';position:absolute;inset:-8% -6%;z-index:-1;filter:blur(12px);
+  background:radial-gradient(closest-side,rgba(47,157,255,.22),transparent 70%)}
+.mock{border-radius:18px;border:1px solid var(--line2);overflow:hidden;
+  background:linear-gradient(180deg,#0e1c36,#0a1426);
+  box-shadow:0 40px 90px rgba(2,8,24,.7);
+  animation:mockFloat 7s ease-in-out infinite}
+@keyframes mockFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.mock-top{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.mdots{display:flex;gap:6px}
+.mdots i{width:9px;height:9px;border-radius:50%}
+.mdots i:nth-child(1){background:#ff5f57}.mdots i:nth-child(2){background:#febc2e}.mdots i:nth-child(3){background:#28c840}
+.mtitle{font-size:12px;color:var(--muted);letter-spacing:.05em}
+.live{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;
+  letter-spacing:.12em;color:#3ddc84;background:rgba(61,220,132,.08);
+  border:1px solid rgba(61,220,132,.35);padding:4px 10px;border-radius:99px}
+.live i{width:6px;height:6px;border-radius:50%;background:#3ddc84;box-shadow:0 0 8px #3ddc84;animation:blink 1.4s infinite}
+.mock-body{display:flex}
+.mock-side{display:flex;flex-direction:column;gap:9px;padding:16px 12px;border-right:1px solid var(--line)}
+.mock-side i{width:20px;height:5px;border-radius:3px;background:rgba(120,170,255,.16)}
+.mock-side i.on{background:var(--blue);box-shadow:0 0 10px rgba(47,157,255,.8)}
+.mock-main{flex:1;padding:14px;min-width:0}
+.mcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
+.mcard{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.mcard span{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.mcard b{font-size:19px;font-weight:800}
+.mcard b i{font-style:normal;font-size:11px;color:var(--muted);margin-left:3px}
+.mcard em{display:block;font-style:normal;font-size:10.5px;margin-top:5px;font-weight:700}
+em.ok{color:#3ddc84}em.warn{color:#ffc24d}em.bad{color:#ff6b6b}
+.mchart{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.02)}
+.mchart svg{display:block;width:100%;height:92px}
+.grid line{stroke:rgba(120,170,255,.09);stroke-width:1}
+.chart-line{stroke:var(--cyan);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:100;stroke-dashoffset:100;animation:draw 1.9s .6s cubic-bezier(.45,0,.2,1) forwards}
+.chart-area{opacity:0;animation:areaIn 1s 1.8s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes areaIn{to{opacity:1}}
+.mlist{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.mrow{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);
+  background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:9px;padding:8px 11px}
+.mrow em{margin-left:auto;font-style:normal;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.mrow i{width:7px;height:7px;border-radius:50%;flex:none}
+i.ok{background:#3ddc84;box-shadow:0 0 8px #3ddc84}
+i.warn{background:#ffc24d;box-shadow:0 0 8px #ffc24d}
+i.bad{background:#ff6b6b;box-shadow:0 0 8px #ff6b6b;animation:blink 1s infinite}
+
+/* ---- marquee ---- */
+.marquee{overflow:hidden;border-block:1px solid var(--line);padding:14px 0;background:rgba(10,20,40,.35)}
+.mq-track{display:flex;width:max-content;animation:mq 28s linear infinite}
+.mq-group{display:flex;align-items:center;gap:34px;padding-right:34px}
+.mq-group span{font-weight:600;color:var(--muted);font-size:13px;letter-spacing:.08em;
+  text-transform:uppercase;white-space:nowrap}
+.mq-group b{color:var(--blue);font-size:11px}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ---- features ---- */
+.features{max-width:1180px;margin:0 auto;padding:80px 28px 90px}
+.sec-title{text-align:center;font-size:clamp(24px,3.4vw,36px);font-weight:800;margin-bottom:44px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.fcard{position:relative;background:linear-gradient(180deg,rgba(16,30,55,.6),rgba(10,20,40,.4));
+  border:1px solid var(--line);border-radius:18px;padding:26px 22px;transition:.3s}
+.fcard:hover{transform:translateY(-6px);border-color:var(--line2);box-shadow:0 24px 50px rgba(3,10,25,.6)}
+.fic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px;
+  background:rgba(70,150,255,.12);color:var(--cyan)}
+.fic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fcard h3{font-size:17px;margin-bottom:8px}
+.fcard p{color:var(--muted);font-size:14px;line-height:1.65}
+.soon-chip{position:absolute;top:18px;right:18px;display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#ffd479;
+  background:rgba(255,190,70,.1);border:1px solid rgba(255,190,70,.35);padding:4px 9px;border-radius:99px}
+.soon-chip i{width:5px;height:5px;border-radius:50%;background:#ffc24d;box-shadow:0 0 8px #ffc24d;animation:blink 1.6s infinite}
+
+/* ---- footer ---- */
+footer{border-top:1px solid var(--line);padding:26px 28px;display:flex;align-items:center;
+  justify-content:space-between;gap:14px;flex-wrap:wrap;background:rgba(6,11,22,.6)}
+.fbrand{display:flex;align-items:center;gap:10px;font-family:'Orbitron';font-size:13px;letter-spacing:.12em}
+.fbrand .brand-mark{width:30px;height:30px;font-size:15px;border-radius:8px}
+footer p{color:var(--muted);font-size:12.5px}
+
+/* ---- toast ---- */
+#toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);opacity:0;z-index:99;
+  pointer-events:none;background:rgba(13,26,48,.95);border:1px solid var(--line2);
+  padding:12px 22px;border-radius:12px;font-weight:600;font-size:14px;
+  box-shadow:0 14px 40px rgba(0,0,0,.6);transition:.3s}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---- reveal on scroll ---- */
+.reveal{opacity:0;transform:translateY(26px);transition:.7s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.fgrid .reveal:nth-child(2){transition-delay:.08s}
+.fgrid .reveal:nth-child(3){transition-delay:.16s}
+.fgrid .reveal:nth-child(4){transition-delay:.24s}
+
+/* ---- responsive ---- */
+@media(max-width:1024px){
+  .hero{grid-template-columns:1fr;padding-top:60px;gap:48px}
+}
+@media(max-width:980px){
+  #burger{display:flex}
+  #topbar{padding:0 16px;gap:12px}
+  #menu{position:fixed;top:78px;left:12px;right:12px;flex-direction:column;align-items:stretch;gap:4px;
+    background:rgba(8,15,30,.98);border:1px solid var(--line2);border-radius:16px;padding:10px;
+    opacity:0;transform:translateY(-12px);pointer-events:none;transition:.25s;z-index:39;
+    box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  #menu.open{opacity:1;transform:none;pointer-events:auto}
+  .nav-item{padding:13px 14px;border-radius:12px}
+  .drop{position:static;display:inline-flex;margin-left:auto;opacity:1;transform:none;
+    pointer-events:auto;background:none;border:0;box-shadow:none;padding:0}
+  .drop::before{display:none}
+  .drop-ic,.drop-name{display:none}
+}
+@media(max-width:620px){
+  .top-actions .ghost{display:none}
+  .hero-stats{gap:22px}
+  .brand-name{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01s!important;transition-duration:.01s!important}
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- ================================================================
+     PAGE 1 — WELCOME
+================================================================ -->
+<div id="welcome">
+  <canvas id="net"></canvas>
+  <div class="vignette"></div>
+
+  <!-- radio waves -->
+  <svg class="waves" viewBox="0 0 1200 140" preserveAspectRatio="none" aria-hidden="true">
+    <path class="wv w1" pathLength="100" d="M0 70 Q60 30 120 70 T240 70 T360 70 T480 70 T600 70 T720 70 T840 70 T960 70 T1080 70 T1200 70"/>
+    <path class="wv w2" pathLength="100" d="M0 90 Q60 60 120 90 T240 90 T360 90 T480 90 T600 90 T720 90 T840 90 T960 90 T1080 90 T1200 90"/>
+    <path class="wv w3" pathLength="100" d="M0 112 Q60 86 120 112 T240 112 T360 112 T480 112 T600 112 T720 112 T840 112 T960 112 T1080 112 T1200 112"/>
+  </svg>
+
+  <div class="w-inner">
+    <!-- animated N logo -->
+    <div class="stage" id="stage">
+      <div class="halo h1"></div>
+      <div class="halo h2"></div>
+      <div class="ripple rp1"></div>
+      <div class="ripple rp2"></div>
+      <div class="ripple rp3"></div>
+      <div class="orbit o1"><i></i><i class="b"></i></div>
+      <div class="orbit o2"><i></i></div>
+      <div class="n">N</div>
+    </div>
+
+    <h1 class="wl">
+      <span class="mask"><i>NET</i></span>
+      <span class="mask"><i>SENCE</i></span>
+    </h1>
+
+    <p class="tag">Network Intelligence Platform</p>
+    <p class="sub">Discover · Monitor · Sense — everything on your network, in real time.</p>
+
+    <button class="cta" id="enterBtn">
+      Enter Platform
+      <svg viewBox="0 0 24 24"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+    </button>
+
+    <p class="hint">Press <b>Enter</b> or click the button · Prototype v0.1</p>
+  </div>
+</div>
+
+<!-- ================================================================
+     PAGE 2 — MAIN SITE
+================================================================ -->
+<div id="app">
+  <div class="app-bg"></div>
+
+  <!-- ===== navbar ===== -->
+  <header id="topbar">
+    <a class="brand" href="#" id="backHome">
+      <div class="brand-mark">N</div>
+      <div class="brand-name">NET <b>SENCE</b></div>
+    </a>
+
+    <nav id="menu">
+      <!-- Products -->
+      <div class="nav-item" tabindex="0" data-soon="Products">
+        <svg viewBox="0 0 24 24"><path d="M12 2.6l8.4 4.8v9.2L12 21.4l-8.4-4.8V7.4L12 2.6z"/><path d="M3.9 7.6L12 12.3l8.1-4.7"/><path d="M12 12.3v8.8"/></svg>
+        <span>Products</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Products</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Solutions -->
+      <div class="nav-item" tabindex="0" data-soon="Solutions">
+        <svg viewBox="0 0 24 24"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3z"/><path d="M3 12.2l9 4.5 9-4.5"/><path d="M3 16.8l9 4.5 9-4.5"/></svg>
+        <span>Solutions</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Solutions</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div class="nav-item" tabindex="0" data-soon="Resources">
+        <svg viewBox="0 0 24 24"><path d="M2.5 4.5h5.5A4 4 0 0112 8.5v11a3.5 3.5 0 00-3.5-3.5h-6v-11z"/><path d="M21.5 4.5H16A4 4 0 0012 8.5v11a3.5 3.5 0 013.5-3.5h6v-11z"/></svg>
+        <span>Resources</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Resources</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Partners -->
+      <div class="nav-item" tabindex="0" data-soon="Partners">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8.2" r="3.4"/><path d="M2.6 20a6.4 6.4 0 0112.8 0"/><path d="M15.8 5.3a3.4 3.4 0 010 5.8"/><path d="M21.4 20a6.4 6.4 0 00-3.6-5.8"/></svg>
+        <span>Partners</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Partners</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Prices -->
+      <div class="nav-item" tabindex="0" data-soon="Prices">
+        <svg viewBox="0 0 24 24"><path d="M3 3h7.6l10 10a1.9 1.9 0 010 2.7l-4.9 4.9a1.9 1.9 0 01-2.7 0L3 11.6V3z"/><circle cx="7.8" cy="7.8" r="1.5"/></svg>
+        <span>Prices</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Prices</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="nav-item" tabindex="0" data-soon="Services">
+        <svg viewBox="0 0 24 24"><path d="M4 13.5a8 8 0 0116 0"/><rect x="2.6" y="13.5" width="4.6" height="6.5" rx="2.1"/><rect x="16.8" y="13.5" width="4.6" height="6.5" rx="2.1"/><path d="M19.8 20a3.2 3.2 0 01-3.2 2.7h-2.4"/></svg>
+        <span>Services</span>
+        <div class="drop">
+          <span class="drop-ic"></span>
+          <span class="drop-name">Services</span>
+          <span class="drop-soon"><i></i>Coming Soon</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="top-actions">
+      <button class="btn ghost" data-soon="Login">Log in</button>
+      <button class="btn solid" data-soon="Free Trial">Get Started</button>
+      <button id="burger" aria-label="menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- ===== hero ===== -->
+  <main>
+    <section class="hero">
+      <div class="hero-copy reveal">
+        <div class="chip"><span class="dot"></span>Platform Preview</div>
+        <h1>Sense every node.<br><span class="grad">See the whole network.</span></h1>
+        <p>NET SENCE is an all-in-one network intelligence platform — discovery, monitoring, alerting and analytics, all in one place.</p>
+        <div class="hero-cta">
+          <button class="btn solid lg" data-soon="Dashboard">Open Live Demo</button>
+          <button class="btn ghost lg" data-soon="Docs">Read the Docs</button>
+        </div>
+        <div class="hero-stats">
+          <div><b data-count="12480">0</b><span>Monitored Nodes</span></div>
+          <div><b data-count="99.99" data-dec="2" data-suf="%">0</b><span>Uptime Accuracy</span></div>
+          <div><b data-count="350" data-suf="+">0</b><span>Ready Integrations</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual reveal" style="transition-delay:.15s">
+        <div class="mock">
+          <div class="mock-top">
+            <span class="mdots"><i></i><i></i><i></i></span>
+            <span class="mtitle">net-sence · console</span>
+            <span class="live"><i></i>LIVE</span>
+          </div>
+          <div class="mock-body">
+            <aside class="mock-side"><i class="on"></i><i></i><i></i><i></i><i></i></aside>
+            <div class="mock-main">
+              <div class="mcards">
+                <div class="mcard"><span>Latency</span><b>12<i>ms</i></b><em class="ok">▼ 3%</em></div>
+                <div class="mcard"><span>Traffic</span><b>8.4<i>Gbps</i></b><em class="warn">▲ 9%</em></div>
+                <div class="mcard"><span>Alerts</span><b>3<i>open</i></b><em class="bad">2 critical</em></div>
+              </div>
+              <div class="mchart">
+                <svg viewBox="0 0 320 96" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#2f9dff" stop-opacity=".34"/>
+                      <stop offset="1" stop-color="#2f9dff" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <g class="grid">
+                    <line x1="0" y1="24" x2="320" y2="24"/><line x1="0" y1="48" x2="320" y2="48"/><line x1="0" y1="72" x2="320" y2="72"/>
+                  </g>
+                  <path class="chart-area" fill="url(#ga)" d="M0 74 L32 64 L64 68 L96 50 L128 56 L160 40 L192 46 L224 32 L256 38 L288 24 L320 30 L320 96 L0 96 Z"/>
+                  <path class="chart-line" pathLength="100" d="M0 74 L32 64 L64 68 L96 50 L128 56 L160 40 L192 46 L224 32 L256 38 L288 24 L320 30"/>
+                </svg>
+              </div>
+              <div class="mlist">
+                <div class="mrow"><i class="ok"></i>core-router-01 <em>36ms</em></div>
+                <div class="mrow"><i class="ok"></i>sw-distribution-2 <em>12ms</em></div>
+                <div class="mrow"><i class="warn"></i>fw-edge-03 <em>84ms</em></div>
+                <div class="mrow"><i class="bad"></i>db-cluster-07 <em>timeout</em></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- capabilities ticker -->
+    <div class="marquee">
+      <div class="mq-track">
+        <div class="mq-group">
+          <span>Network Discovery</span><b>✦</b><span>Latency Monitoring</span><b>✦</b>
+          <span>Bandwidth Analytics</span><b>✦</b><span>AI Anomaly Detection</span><b>✦</b>
+          <span>Cloud &amp; On-Prem</span><b>✦</b><span>Asset Inventory</span><b>✦</b>
+          <span>Smart Alerting</span><b>✦</b><span>Open API</span><b>✦</b>
+        </div>
+        <div class="mq-group">
+          <span>Network Discovery</span><b>✦</b><span>Latency Monitoring</span><b>✦</b>
+          <span>Bandwidth Analytics</span><b>✦</b><span>AI Anomaly Detection</span><b>✦</b>
+          <span>Cloud &amp; On-Prem</span><b>✦</b><span>Asset Inventory</span><b>✦</b>
+          <span>Smart Alerting</span><b>✦</b><span>Open API</span><b>✦</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- features -->
+    <section class="features">
+      <h2 class="sec-title reveal">Everything you need to <span class="grad">sense your network</span></h2>
+      <div class="fgrid">
+        <div class="fcard reveal">
+          <span class="soon-chip"><i></i>Coming Soon</span>
+          <div class="fic"><svg viewBox="0 0 24 24"><path d="M2.5 12h4l3-7 4.5 14 3-7h4.5"/></svg></div>
+          <h3>Unified Monitoring</h3>
+          <p>Devices, servers, cloud and applications — all in a single pane of glass.</p>
+        </div>
+        <div class="fcard reveal">
+          <span class="soon-chip"><i></i>Coming Soon</span>
+          <div class="fic"><svg viewBox="0 0 24 24"><rect x="5.8" y="5.8" width="12.4" height="12.4" rx="2"/><rect x="9.6" y="9.6" width="4.8" height="4.8" rx="1"/><path d="M9.2 2.2v3.6M14.8 2.2v3.6M9.2 18.2v3.6M14.8 18.2v3.6M2.2 9.2h3.6M2.2 14.8h3.6M18.2 9.2h3.6M18.2 14.8h3.6"/></svg></div>
+          <h3>AI Anomaly Sense</h3>
+          <p>Detect unusual traffic patterns automatically, before they become incidents.</p>
+        </div>
+        <div class="fcard reveal">
+          <span class="soon-chip"><i></i>Coming Soon</span>
+          <div class="fic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14.5 14.5 0 010 18M12 3a14.5 14.5 0 000 18"/></svg></div>
+          <h3>Auto Network Discovery</h3>
+          <p>Map every asset on your network in real time, with zero manual configuration.</p>
+        </div>
+        <div class="fcard reveal">
+          <span class="soon-chip"><i></i>Coming Soon</span>
+          <div class="fic"><svg viewBox="0 0 24 24"><path d="M12 2.6l7.4 2.9v5.4c0 4.9-3.1 8.5-7.4 10.4-4.3-1.9-7.4-5.5-7.4-10.4V5.5L12 2.6z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/></svg></div>
+          <h3>Smart Alerting</h3>
+          <p>Actionable, noise-free alerts delivered exactly where your team lives.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="fbrand"><div class="brand-mark">N</div>NET SENCE</div>
+    <p>© 2026 NET SENCE — UI Prototype · All sections are coming soon.</p>
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= 1) Welcome — particle network ================= */
+(function(){
+  const canvas = document.getElementById('net');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts = [], mouse = {x:-1e4, y:-1e4};
+
+  function resize(){
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    const n = Math.min(130, Math.floor(W * H / 11000));
+    pts = [];
+    for(let i = 0; i < n; i++) pts.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+      r: Math.random()*1.7+.7, ph: Math.random()*Math.PI*2
+    });
+  }
+  window.addEventListener('resize', resize); resize();
+  window.addEventListener('mousemove', e=>{
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+  });
+
+  const LINK = 140;
+  function frame(t){
+    ctx.clearRect(0,0,W,H);
+    for(const p of pts){
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0 || p.x > W) p.vx *= -1;
+      if(p.y < 0 || p.y > H) p.vy *= -1;
+      const a = .3 + Math.abs(Math.sin(t/1100 + p.ph)) * .4;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283);
+      ctx.fillStyle = 'rgba(120,195,255,'+a.toFixed(3)+')'; ctx.fill();
+    }
+    for(let i = 0; i < pts.length; i++){
+      for(let j = i+1; j < pts.length; j++){
+        const dx = pts[i].x-pts[j].x, dy = pts[i].y-pts[j].y, d2 = dx*dx+dy*dy;
+        if(d2 < LINK*LINK){
+          const o = (1 - Math.sqrt(d2)/LINK) * .28;
+          ctx.strokeStyle = 'rgba(90,160,255,'+o.toFixed(3)+')';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.stroke();
+        }
+      }
+      const p = pts[i], dx = p.x-mouse.x, dy = p.y-mouse.y, d2 = dx*dx+dy*dy;
+      if(d2 < 180*180){
+        const o = (1 - Math.sqrt(d2)/180) * .5;
+        ctx.strokeStyle = 'rgba(111,227,255,'+o.toFixed(3)+')';
+        ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ================= 2) Clone nav icons into the hover cards ================= */
+document.querySelectorAll('.nav-item').forEach(item=>{
+  const ic = item.querySelector('svg'), slot = item.querySelector('.drop-ic');
+  if(ic && slot) slot.appendChild(ic.cloneNode(true));
+});
+
+/* ================= 3) Page switching ================= */
+const welcome = document.getElementById('welcome');
+const app     = document.getElementById('app');
+const enterBtn= document.getElementById('enterBtn');
+let transitioning = false;
+
+function goApp(){
+  if(transitioning || welcome.classList.contains('hide')) return;
+  transitioning = true;
+  welcome.classList.add('hide');
+  document.body.classList.remove('locked');
+  setTimeout(()=>{ app.classList.add('show'); runCounters(); transitioning = false; }, 520);
+}
+enterBtn.addEventListener('click', goApp);
+window.addEventListener('keydown', e=>{
+  if(e.key === 'Enter' && !welcome.classList.contains('hide')) goApp();
+});
+document.getElementById('backHome').addEventListener('click', e=>{
+  e.preventDefault();
+  app.classList.remove('show');
+  document.body.classList.add('locked');
+  welcome.classList.remove('hide');
+});
+
+/* ================= 4) Animated counters ================= */
+function runCounters(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target = parseFloat(el.dataset.count);
+    const dec    = +(el.dataset.dec || 0);
+    const suf    = el.dataset.suf || '';
+    const dur = 1600, t0 = performance.now();
+    (function f(t){
+      const p = Math.min(1,(t-t0)/dur);
+      const e = 1 - Math.pow(1-p,3);
+      const v = target*e;
+      el.textContent = (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US')) + suf;
+      if(p < 1) requestAnimationFrame(f);
+    })(t0);
+  });
+}
+
+/* ================= 5) Toast (any "coming soon" button) ================= */
+const toastEl = document.getElementById('toast');
+let toastT;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>toastEl.classList.remove('on'), 2200);
+}
+document.querySelectorAll('[data-soon]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    toast((el.dataset.soon ? el.dataset.soon + ' — ' : '') + 'Coming Soon');
+    if(el.closest('#menu') && window.innerWidth <= 980){
+      menu.classList.remove('open'); burger.classList.remove('open');
+    }
+  });
+});
+
+/* ================= 6) Burger menu ================= */
+const burger = document.getElementById('burger');
+const menu   = document.getElementById('menu');
+burger.addEventListener('click', ()=>{
+  menu.classList.toggle('open');
+  burger.classList.toggle('open');
+});
+
+/* ================= 7) Parallax on the welcome logo ================= */
+const stage = document.getElementById('stage');
+welcome.addEventListener('mousemove', e=>{
+  const x = e.clientX/innerWidth - .5, y = e.clientY/innerHeight - .5;
+  stage.style.transform = 'translate3d(' + (-x*22).toFixed(1) + 'px,' + (-y*16).toFixed(1) + 'px,0)';
+});
+
+/* ================= 8) Reveal on scroll ================= */
+const io = new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+}), {threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
